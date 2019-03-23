@@ -1,0 +1,28 @@
+ /****************************************************************************
+  * giphy-browser/css/style.css
+  * CSS stylesheet for Giphy Browser
+  *
+  * 0048 Saturday, 23 March 2019 (EDT) [17978]
+  *
+  * University of Richmond Coding Boot Camp run by Trilogy Education Services
+  * Austin Kim
+  *
+  * Modified:
+  ****************************************************************************/
+
+ /* Body */
+body {
+  background-color: #fff7e9;
+  background-image: url('../images/background.jpeg');
+  background-position: top;
+  background-repeat: repeat-y}
+
+ /* Footer */
+hr.lainbow {
+  background-image: url('../images/lainbow.png');
+  height: 2px}
+
+ /* Logos */
+.logo {
+  background-color: #383e4d;
+  height: 46px}

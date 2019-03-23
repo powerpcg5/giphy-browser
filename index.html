@@ -1,0 +1,219 @@
+<!--************************************************************************
+    * giphy-browser/index.html
+    * Giphy browser with persistent local storage
+    *
+    * 1916 Wednesday, 20 March 2019 (EDT) [17975]
+    *
+    * University of Richmond Coding Boot Camp run by Trilogy Education Services
+    * Austin Kim
+    *
+    * Modified:
+    *   2233 Friday, 22 March 2019 (EDT) [17977]
+    *   0046 Saturday, 23 March 2019 (EDT) [17978]
+    ************************************************************************-->
+<!DOCTYPE html>
+<html xmlns='http://www.w3.org/1999/xhtml' lang='en'>
+  <head>
+    <meta charset='utf-8'/>
+    <meta name='viewport'
+      content='width=device-width, initial-scale=1, shrink-to-fit=no'/>
+    <!--Bootstrap CSS-->
+    <link rel='stylesheet'
+      href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css'
+      integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T'
+      crossorigin='anonymous'/>
+    <!--CSS stylesheet-->
+    <link rel='stylesheet' type='text/css' href='css/style.css'/>
+    <title>Giphy Browser</title>
+    <script defer src='javascript/app.js'></script>
+  </head>
+  <body>
+    <!--Bootstrap navigation bar-->
+    <nav class='navbar navbar-light bg-light'>
+      <a class='navbar-brand' href='index.html'>Giphy Browser</a>
+      <button type='button' class='btn btn-outline-danger'
+        id='clearTopics'>Clear Topics</button>
+      <button type='button' class='btn btn-outline-warning'
+        id='clearImages'>Clear Images</button>
+      <button type='button' class='btn btn-outline-success' data-toggle='modal'
+        data-target='#settingsModal' id='settings'>Settings</button>
+    </nav>
+    <!--Add query form-->
+    <div class='card float-right'>
+      <div class='card-body'>
+        <form>
+          <div class='form-group'>
+            <label for='query'>Search query term or phrase:</label>
+            <input type='text' class='form-control' id='query'
+              aria-describedby='queryHelp' placeholder='Search query'/>
+          </div>
+          <button type='submit' class='btn btn-primary'>Submit</button>
+        </form>
+      </div>
+    </div>
+    <!--Query buttons-->
+    <div id='buttons'></div>
+    <!--Images-->
+    <div id='images'></div>
+    <!--Pagination-->
+    <div id='pagination'></div>
+    <!--Settings modal-->
+    <div class='modal fade' id='settingsModal' tabindex='-1' role='dialog'
+      aria-labelledby='settingsModalLabel' aria-hidden='true'>
+      <div class='modal-dialog' role='document'>
+        <div class='modal-content'>
+          <div class='modal-header'>
+            <h5 class='modal-title' id='settingsModalLabel'>Giphy Browser</h5>
+          </div>
+          <div class='modal-body'>
+            <div class='md-form'>
+              <label for='limit' id='limitPrompt'>Number of results per
+                page:</label>
+              <input type='text' class='form-control' id='limit'
+                placeholder='10'/>
+              <label class='mt-3' for='rating'
+                id='ratingPrompt'>Rating:</label>
+              <select class='custom-select' id='rating'>
+                <option value='Y'>Y</option>
+                <option value='G' selected>G</option>
+                <option value='PG'>PG</option>
+                <option value='PG-13'>PG-13</option>
+                <option value='R'>R</option>
+              </select>
+              <label class='mt-3' for='lang'
+                id='langPrompt'>Language/locale:</label>
+              <select class='custom-select' id='lang'>
+                <option value='cs'>Čeština</option>
+                <option value='da'>Dansk</option>
+                <option value='de'>Deutsch</option>
+                <option value='en' selected>English</option>
+                <option value='es'>Español</option>
+                <option value='fr'>Français</option>
+                <option value='id'>Indonesian</option>
+                <option value='it'>Italiano</option>
+                <option value='hu'>Magyar</option>
+                <option value='nl'>Nederlands</option>
+                <option value='no'>Norsk</option>
+                <option value='pl'>Polski</option>
+                <option value='pt'>Português</option>
+                <option value='ro'>Română</option>
+                <option value='fi'>Suomi</option>
+                <option value='sv'>Svenska</option>
+                <option value='tl'>Tagalog</option>
+                <option value='tr'>Türkçe</option>
+                <option value='vi'>Tiếng Việt</option>
+                <option value='ru'>Русский</option>
+                <option value='uk'>Українська</option>
+                <option value='iw'>עברית</option>
+                <option value='ar'>العربية</option>
+                <option value='fa'>فارسی</option>
+                <option value='ms'>بهاس ملايو</option>
+                <option value='hi'>हिन्दी</option>
+                <option value='bn'>বাংলা</option>
+                <option value='zh-CN'>中文 (汉语)</option>
+                <option value='zh-TW'>中文 (漢語)</option>
+                <option value='ja'>日本語 (にほんご)</option>
+                <option value='ko'>한국어</option>
+                <option value='th'>ไทย</option>
+              </select>
+              <label class='mt-3' for='size' id='sizePrompt'>Image
+                size:</label>
+              <select class='custom-select' id='size'>
+                <option value='100' selected>100 &times; 100 pixels</option>
+                <option value='200'>200 &times; 200 pixels</option>
+                <option value='300'>300 &times; 300 pixels</option>
+                <option value='400'>400 &times; 400 pixels</option>
+              </select>
+              <small class='form-text text-muted'>Images will be scaled to the
+                equivalent area while preserving aspect ratio.</small>
+              <label class='mt-3' for='info' id='infoPrompt'>Image
+                info:</label>
+              <select class='custom-select' id='info'>
+                <option value='rating' selected>Rating only</option>
+                <option value='full'>Full info</option>
+              </select>
+              <small class='form-text mt-3'>Changes to settings take effect the
+                next time images are retrieved.</small>
+            </div>
+          </div>
+          <div class='modal-footer'>
+            <button type='button' class='btn btn-secondary'
+              data-dismiss='modal' id='settingsModalCancel'>Cancel</button>
+            <button type='button' class='btn btn-primary' data-dismiss='modal'
+              id='settingsModalOK'>OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--Invalid settings modal-->
+    <div class='modal fade' id='invalidSettingsModal' tabindex='-1'
+      role='dialog' aria-labelledby='invalidSettingsLabel' aria-hidden='true'>
+      <div class='modal-dialog' role='document'>
+        <div class='modal-content'>
+          <div class='modal-header'>
+            <h5 class='modal-title' id='invalidSettingsLabel'>Giphy
+              Browser</h5>
+          </div>
+          <div class='modal-body'>
+            <p>The number of results per page must be between 1 and 100.</p>
+          </div>
+          <div class='modal-footer'>
+            <button type='button' class='btn btn-primary' data-dismiss='modal'
+              id='invalidSettingsOK'>OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--Footer-->
+    <div class='container'>
+      <div class='row'>
+        <div class='col'>
+          <hr class='lainbow'/>
+        </div>
+      </div>
+      <div class='row justify-content-between'>
+        <div class='col-auto'>
+          Copyright &copy; 2019 Austin Kim under the terms of the <a
+            href='https://opensource.org/licenses/MIT/'>MIT License</a>.<br
+          />Last modified at 0046 Saturday, 23 March 2019 (EDT) [17978].<br
+          />Send errors and broken links to freennix at gmail dot com.
+        </div>
+        <!--Tooltips must be placed on _img_ elements for proper positioning-->
+        <div class='col-auto'>
+          <a href='https://validator.w3.org/check?uri=referer'><img
+            src='https://www.w3.org/QA/Tools/I_heart_validator_lg.png'
+            title='Valid HTML 5!' alt='Valid HTML 5!'
+            data-toggle='tooltip'/></a>
+          <a href='https://www.giphy.com/'><img
+            src='images/Poweredby_640px-White_VertLogo.png' title='Powered by
+            Giphy' alt='Powered by Giphy' class='logo'
+            data-toggle='tooltip'/></a>
+<!--CSS not valid due to Bootstrap
+          <a href='https://jigsaw.w3.org/css-validator/check?uri=referer'><img
+            src='https://jigsaw.w3.org/css-validator/images/vcss.png'
+            title='Valid CSS level 3!' alt='Valid CSS level 3!'
+            data-toggle='tooltip'/></a>
+-->
+        </div>
+      </div>
+    </div>
+    <!--jQuery (full build required for $.ajax)-->
+    <script src='https://code.jquery.com/jquery-3.3.1.min.js'
+      integrity='sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT'
+      crossorigin='anonymous'></script>
+    <!--Popper.js-->
+    <script
+      src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js'
+      integrity='sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1'
+      crossorigin='anonymous'></script>
+    <!--Bootstrap-->
+    <script
+      src='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js'
+      integrity='sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM'
+      crossorigin='anonymous'></script>
+    <!--Enable Bootstrap tooltips-->
+    <script>
+      $("[data-toggle='tooltip']").tooltip()
+    </script>
+  </body>
+</html>
