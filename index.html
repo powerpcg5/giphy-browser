@@ -9,7 +9,7 @@
     *
     * Modified:
     *   2233 Friday, 22 March 2019 (EDT) [17977]
-    *   0046 Saturday, 23 March 2019 (EDT) [17978]
+    *   2316 Saturday, 23 March 2019 (EDT) [17978]
     ************************************************************************-->
 <!DOCTYPE html>
 <html xmlns='http://www.w3.org/1999/xhtml' lang='en'>
@@ -32,7 +32,7 @@
     <nav class='navbar navbar-light bg-light'>
       <a class='navbar-brand' href='index.html'>Giphy Browser</a>
       <button type='button' class='btn btn-outline-danger'
-        id='clearTopics'>Clear Topics</button>
+        id='resetTopics'>Reset Topics</button>
       <button type='button' class='btn btn-outline-warning'
         id='clearImages'>Clear Images</button>
       <button type='button' class='btn btn-outline-success' data-toggle='modal'
@@ -47,7 +47,8 @@
             <input type='text' class='form-control' id='query'
               aria-describedby='queryHelp' placeholder='Search query'/>
           </div>
-          <button type='submit' class='btn btn-primary'>Submit</button>
+          <button type='submit' class='btn btn-primary'
+            id='submit'>Submit</button>
         </form>
       </div>
     </div>
@@ -119,10 +120,10 @@
               <label class='mt-3' for='size' id='sizePrompt'>Image
                 size:</label>
               <select class='custom-select' id='size'>
-                <option value='100' selected>100 &times; 100 pixels</option>
+                <option value='50' selected>50 &times; 50 pixels</option>
+                <option value='100'>100 &times; 100 pixels</option>
                 <option value='200'>200 &times; 200 pixels</option>
                 <option value='300'>300 &times; 300 pixels</option>
-                <option value='400'>400 &times; 400 pixels</option>
               </select>
               <small class='form-text text-muted'>Images will be scaled to the
                 equivalent area while preserving aspect ratio.</small>
@@ -175,7 +176,7 @@
         <div class='col-auto'>
           Copyright &copy; 2019 Austin Kim under the terms of the <a
             href='https://opensource.org/licenses/MIT/'>MIT License</a>.<br
-          />Last modified at 0046 Saturday, 23 March 2019 (EDT) [17978].<br
+          />Last modified at 2316 Saturday, 23 March 2019 (EDT) [17978].<br
           />Send errors and broken links to freennix at gmail dot com.
         </div>
         <!--Tooltips must be placed on _img_ elements for proper positioning-->
