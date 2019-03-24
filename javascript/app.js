@@ -8,7 +8,7 @@
  // Austin Kim
  //
  // Modified:
- //   1809 Sunday, 24 March 2019 (EDT) [17979]
+ //   1836 Sunday, 24 March 2019 (EDT) [17979]
  //////////////////////////////////////////////////////////////////////////////
 
  // Giphy API key
@@ -424,7 +424,11 @@ function pullGiphy(query, offset) {
  //   Otherwise, pull the first _limit_ images from favorites
 function pullFavorites(offset) {
   var o                                  // Local offset
-  if (prevQuery === 'favorites') o = offset
+  if (prevQuery === 'favorites')
+    if (o < favorites.length) o = offset
+      else {                             // Floor offset down to next multiple
+        o = Math.floor((favorites.length - 1) / limit)
+        o = o < 0 ? 0 : limit * o}
     else o = count = 0                   // Reset _count_ and offset
   var images = {}                        // Reset image object
   var image                              // Temporary object for each image
