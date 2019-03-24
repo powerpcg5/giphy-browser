@@ -8,6 +8,7 @@
   * Austin Kim
   *
   * Modified:
+  *   1404 Sunday, 24 March 2019 (EDT) [17979]
   ****************************************************************************/
 
  /* Body */
@@ -16,6 +17,10 @@ body {
   background-image: url('../images/background.jpeg');
   background-position: top;
   background-repeat: repeat-y}
+
+ /* Cards */
+div.card {
+  display: inline-block}
 
  /* Footer */
 hr.lainbow {

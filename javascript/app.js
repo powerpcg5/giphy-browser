@@ -8,6 +8,7 @@
  // Austin Kim
  //
  // Modified:
+ //   1809 Sunday, 24 March 2019 (EDT) [17979]
  //////////////////////////////////////////////////////////////////////////////
 
  // Giphy API key
@@ -17,7 +18,7 @@ const api_key = 'kPYfzciWv3mNaxBUymuXQMjS1RAwgB2B'
 var limit = 10                           // Number of images per page
 var rating = 'G'                         // Image rating
 var lang = 'en'                          // Language/locale
-var size = 50                            // Image size (square root of area)
+var size = 200                           // Image size (square root of area)
 var info = 'rating'                      // Image info detail level
 
  // Global variables
@@ -47,7 +48,6 @@ var images
  //   pullFavorites(offset)             Pull images from favorites
  //   computeWidth(width, height)       Compute width to scale image to size^2
  //   computeHeight(width, height)      Compute height to scale image to size^2
- //   imageToggle()                     Toggle image playback
  //////////////////////////////////////////////////////////////////////////////
 
  // storageAvailable(type):  Return true if Web storage of _type_ be enabled
@@ -110,11 +110,11 @@ function displayButtons() {
   $('#buttons').empty()
  // Create persistent _favorites_ button
   div = $('<div>')
-    div.attr('class', 'btn-group m-1')
+    div.addClass('btn-group m-1')
   button = $('<button>')
+    button.addClass('btn btn-primary btn-sm topic')
     button.attr('type', 'button')
-    button.attr('class', 'btn btn-primary btn-sm')
-    button.attr('id', 'button-0')
+    button.attr('data-id', '0')
     button.text('favorites')
   div.append(button)
   $('#buttons').append(div)
@@ -136,30 +136,30 @@ function displayButtons() {
  //   </div>
   for (var i = 1; i != topics.length; ++i) {
     div = $('<div>')
-      div.attr('class', 'btn-group m-1')
+      div.addClass('btn-group m-1')
     button = $('<button>')
+      button.addClass('btn btn-primary btn-sm topic')
       button.attr('type', 'button')
-      button.attr('class', 'btn btn-primary btn-sm topic')
       button.attr('data-id', i.toString())
       button.text(topics[i])
     div.append(button)
     dropdown = $('<button>')
+      dropdown.addClass('btn btn-primary btn-sm dropdown-toggle')
+      dropdown.addClass('dropdown-toggle-split')
       dropdown.attr('type', 'button')
-      dropdown.attr('class',
-        'btn btn-primary btn-sm dropdown-toggle dropdown-toggle-split')
       dropdown.attr('data-toggle', 'dropdown')
       dropdown.attr('aria-haspopup', 'true')
       dropdown.attr('aria-expanded', 'false')
     span = $('<span>')
-      span.attr('class', 'sr-only')
+      span.addClass('sr-only')
       span.text('Toggle Dropdown')
     dropdown.append(span)
     div.append(dropdown)
     menu = $('<div>')
-      menu.attr('class', 'dropdown-menu')
+      menu.addClass('dropdown-menu')
     button = $('<button>')
+      button.addClass('dropdown-item')
       button.attr('type', 'button')
-      button.attr('class', 'dropdown-item')
       button.attr('data-id', i.toString())
       button.text('Delete')
     menu.append(button)
@@ -199,9 +199,11 @@ function pullImages(query, offset) {
  // pullGiphy(query, offset):  Pull _limit_ images for _query_ at _offset_
  //   If _query_ === _prevQuery_, attempt to pull _limit_ images from _offset_
  //   Otherwise, pull the first _limit_ images for the new _query_
-function pullImages(query, offset) {
+function pullGiphy(query, offset) {
   var q = query.trim().toLowerCase()     // Local query
-  var o = query === prevQuery ?offset :0 // Local offset
+  var o                                  // Local offset
+  if (q === prevQuery && q !== 'trending') o = offset
+    else o = count = 0                   // Reset _count_ and offset
   var qplus = ''
   for (var i = 0; i !== q.length; ++i)
     qplus += q.charAt(i) === ' ' ? '+' : q.charAt(i)
@@ -224,111 +226,370 @@ function pullImages(query, offset) {
       var data = response.data
       images = {}                        // Reset image object
       var image                          // Temporary object for each image
-      var card, img, div, h5, p, button  // jQuery variables to build card
+      var card, img, div, p, s, cont, row, button, a // jQuery temporary var's
       $('#images').empty()
-      for (var i = 0; i != length; ++i) {
-     // Create an info object for each image = same format used in favorites
+      for (var i = 0; i !== length; ++i) {
+     // Create an info object for each image = same format used in _favorites_
         image = {}
           image.id = data[i].id          // Unique 18-character image ID
           image.rating = data[i].rating  // Image rating
           image.import_datetime = data[i].import_datetime
-          image.stillURL = data[i].images.original_still.url
-          image.animURL = data[i].images.original.url
           image.width = parseInt(data[i].images.original.width)
-          image.height = parseInt(data[i].images.oiginal.height)
+          image.height = parseInt(data[i].images.original.height)
+          if (data[i].images.original.url)
+            image.animURL = data[i].images.original.url
+            else {
+              console.log(`No original URL for image ${image.id}`)
+              image.animURL = 'images/Poweredby_640px-White_VertLogo.png'
+              image.width = 640
+              image.height = 225}
+          if (data[i].images.original_still.url)
+            image.stillURL = data[i].images.original_still.url
+            else {
+              console.log(`No still URL for image ${image.id}`)
+              image.stillURL = image.animURL}
           image.title = data[i].title    // Image title
-        images[image.id] = image         // Add image to imageArray
+        images[image.id] = image         // Add image to image array
    // Create a card for each image in the following format:
-   // <div class='card' style='width: 18rem'>
+   // <div class='card text-center' data-id='ID'>
    //   <img src='URL' class='card-img-top' data-id='ID' data-status='still'/>
    //   <div class='card-body'>
-   //     <h5 class='card-title'>Rating: RATING</h5>
-   //     <p class='card-text'>TITLE</p>
-   //     <p class='card-text'>Date: DATE</p>
-   //     <button type='button' class='btn btn-primary btn-xsm save'
-   //       data-id='ID'>Save</button>
-   //     <a href='URL'<button type='button' class='btn btn-secondary btn-xsm download'
-   //       data-id='ID'>Download</button>
+   //     <p>class='card-text'>Rating: RATING(<br/>
+   //       TITLE<br/>
+   //       Date: DATE)</p>
+   //     <div class='container'>
+   //       <div class='row justify-content-between'>
+   //         <button type='button' class='btn btn-primary btn-sm save'
+   //           data-id='ID'>Save</button>
+   //         <a href='URL' download='FILE'>
+   //           <button type='button' class='btn btn-secondary btn-sm download'
+   //             data-id='ID'>Download</button>
+   //         </a>
+   //       </div>
+   //     </div>
    //   </div>
    // </div>
         card = $('<div>')
-          card.css('width', '18rem')
+          card.addClass('card text-center')
+          card.attr('data-id', image.id)
         img = $('<img>')
+          img.addClass('card-img-top')
           img.attr('src', image.stillURL)
-          img.attr('class', 'card-img-top')
           img.attr('data-id', image.id)
           img.attr('data-status', 'still')
           img.css('width', computeWidth(image.width, image.height))
           img.css('height', computeHeight(image.width, image.height))
         card.append(img)
         div = $('<div>')
-          div.attr('class', 'card-body')
-        h5 = $('<h5>')
-          h5.attr('class', 'card-title')
-          h5.text(`Rating: ${image.rating}`)
-        div.append(h5)
-        if (info === 'full') {
-          p = $('<p>')
-            p.attr('class', 'card-text')
-            p.text(image.title)
-          div.append(p)
-          p = $('<p>')
-            p.attr('class', 'card-text')
-            p.text(`Date: ${image.import_datetime}`)
-          div.append(p)}
+          div.addClass('card-body')
+        p = $('<p>')
+          p.addClass('card-text')
+          s = `Rating: ${image.rating}`
+          if (info === 'full')
+            s += `<br/>${image.title}<br/>Date: ${image.import_datetime}`
+          p.html(s)
+        div.append(p)
+        cont = $('<div>')
+          cont.addClass('container')
+        row = $('<div>')
+          row.addClass('row justify-content-between')
+     // Create _Save_ button
         button = $('<button>')
+          button.addClass('btn btn-primary btn-sm save')
           button.attr('type', 'button')
-          button.attr('class', 'btn btn-primary btn-xsm save')
           button.attr('data-id', image.id)
           button.text('Save')
-        div.append(button)
+        row.append(button)
+     // Create _Download_ button
+        a = $('<a>')
+          a.attr('href', image.animURL)
+          a.attr('download',
+            image.animURL.substring(image.animURL.lastIndexOf('/') + 1,
+              image.animURL.lastIndexOf('.')) + '.html')
         button = $('<button>')
+          button.addClass('btn btn-secondary btn-sm download')
           button.attr('type', 'button')
-          button.attr('class', 'btn btn-secondary btn-xsm download')
           button.attr('data-id', image.id)
           button.text('Download')
-        div.append(button)
+        a.append(button)
+        row.append(a)
+        cont.append(row)
+        div.append(cont)
+     // Append card to images
         card.append(div)
         $('#images').append(card)}
-     // Attach handler for toggling image playback
+   // Attach handler for toggling image playback
       $('.card-img-top').click(function() {
-        imageToggle()
+        var id = $(this).attr('data-id')
+        if ($(this).attr('data-status') === 'still') {
+          $(this).attr('src', images[id].animURL)
+          $(this).attr('data-status', 'anim')}
+          else {
+            $(this).attr('src', images[id].stillURL)
+            $(this).attr('data-status', 'still')}
         return}
         )
-     // Now attach handlers for _Save_ and _Download_ buttons
+   // Attach handlers for _Save_ button
       $('.save').click(function() {
-
-////GOT HERE
+        var id = $(this).attr('data-id')
+        var inFavorites = false
+        for (var i = 0; !inFavorites && i !== favorites.length; ++i)
+          if (favorites[i].id === id) inFavorites = true
+        if (!inFavorites) favorites[i] = images[id]
+     // Also save to localStorage
+        if (localStorageAvailable || storageAvailable('localStorage')) {
+          localStorageAvailable = true
+          localStorage.setItem('favorites', JSON.stringify(favorites))}
+     // Make button inactive
+        $('.save').each(function() {
+          if ($(this).attr('data-id') === id) {
+            $(this).attr('disabled', 'disabled')
+            $(this).off('click')}
+          return}
+          )
         return}
         )
-
-  $('#pagination').empty()
-      }
-
-///careful with prevquery and offset calculations
-  if (q === prevQuery) prevOffset = offset
-    else {
-      prevOffset
-  prevQuery = q
-    if (response.response_code !== 0) {
-      $('#images').empty()
-      $('#images').text(`Error: response_code = ${response.response_code}`)
-      }
-
-      else {                             // Error
-        }
-        })
-
+   // Update count of images pulled so far for current query
+      count = Math.max(count, o + length)
+   // Display pagination
+      $('#pagination').empty()
+      var nav, ul, li                    // jQuery variables to build pagination
+   // Build Bootstrap pagination along the lines of the following:
+   // <nav aria-label='Image navigation bar' class='mt-3'>
+   //   <ul class='pagination justify-content-center'>
+   //     <li class='page-item page' data-offset='OFFSET'>
+   //       <a class='page-link' href='#'>0&ndash;9</a>
+   //     </li>
+   //     <li class='page-item page (active)' data-offset='OFFSET'>
+   //       <a class='page-link' href='#'>10&ndash;19</a>
+   //     </li>
+   //     <li class='page-item (disabled)' data-offset='OFFSET'>
+   //       <a class='page-link' href='#' (tabindex='-1')>More</a>
+   //     </li>
+   //   </ul>
+   // </nav>
+      nav = $('<nav>')
+        nav.addClass('mt-3')
+        nav.attr('aria-label', 'Image navigation bar')
+      ul = $('<ul>')
+        ul.addClass('pagination justify-content-center')
+      var first = 0, next
+      while (first < count) {
+        next = Math.min(first + limit, count)
+        li = $('<li>')
+          li.addClass('page-item page')
+          if (o >= first && o < next) li.addClass('active')
+          li.attr('data-offset', `${first}`)
+        a = $('<a>')
+          a.addClass('page-link')
+          a.attr('href', '#')
+          a.html(`${first}&ndash;${next - 1}`)
+        li.append(a)
+        ul.append(li)
+        first = next}
+   // Now add pagination button for `More' images
+   //   (except for _trending_, which does not allow specifying an _offset_)
+      li = $('<li>')
+        li.addClass('page-item')
+        if (length === limit && q !== 'trending') li.addClass('page')
+          else li.addClass('disabled')
+        li.attr('data-offset', `${count}`)
+      a = $('<a>')
+        a.addClass('page-link')
+        a.attr('href', '#')
+        if (length < limit || q === 'trending') li.attr('tabindex', '-1')
+        a.text('More')
+      li.append(a)
+      ul.append(li)
+      nav.append(ul)
+      $('#pagination').append(nav)
+   // Now add handlers for pagination buttons
+      $('.page').click(function() {
+        var offset = parseInt($(this).attr('data-offset'))
+        pullGiphy(prevQuery, offset)
+        return}
+        )
+   // Update prevQuery and prevOffset
+      prevQuery = q
+      prevOffset = o}
+      else {                             // API call failed
+        $('#images').empty()
+        $('#images').text(`Error:  ${JSON.stringify(response)}`)
+        $('#pagination').empty()}
+    })
   return}
 
- //   pullFavorites(offset)             Pull images from favorites
-
- //   If _query_ === _prevQuery_, attempt to pull _limit_ images from _offset_
- //   Otherwise, pull the first _limit_ images for the new _query_
-
-//FAVORITES:
-//download button
-//delete button
+ // pullFavorites(offset):  Pull images from favorites
+ //   If _query_ === _prevQuery_, attempt to pull _limit_ images from favorites
+ //   Otherwise, pull the first _limit_ images from favorites
+function pullFavorites(offset) {
+  var o                                  // Local offset
+  if (prevQuery === 'favorites') o = offset
+    else o = count = 0                   // Reset _count_ and offset
+  var images = {}                        // Reset image object
+  var image                              // Temporary object for each image
+  var card, img, div, p, s, cont, row, button, a // jQuery temporary var's
+  $('#images').empty()
+  var length = Math.min(limit, favorites.length - o)
+  for (var i = 0; i !== length; ++i) {
+    image = favorites[o + i]
+ // FYI the above info object has the following structure built by pullGiphy():
+   // image.id = data[i].id              // Unique 18-character image ID
+   // image.rating = data[i].rating      // Image rating
+   // image.import_datetime = data[i].import_datetime
+   // image.width = parseInt(data[i].images.original.width)
+   // image.height = parseInt(data[i].images.original.height)
+   // image.animURL = data[i].images.original.url
+   // image.stillURL = data[i].images.original_still.url
+   // image.title = data[i].title        // Image title
+    images[image.id] = image         // Add image to image array
+   // Create a card for each image in the following format:
+   // <div class='card text-center' data-id='ID'>
+   //   <img src='URL' class='card-img-top' data-id='ID' data-status='still'/>
+   //   <div class='card-body'>
+   //     <p>class='card-text'>Rating: RATING(<br/>
+   //       TITLE<br/>
+   //       Date: DATE)</p>
+   //     <div class='container'>
+   //       <div class='row justify-content-between'>
+   //         <button type='button' class='btn btn-danger btn-sm delete'
+   //           data-id='ID'>Delete</button>
+   //         <a href='URL' download='FILE'>
+   //           <button type='button' class='btn btn-secondary btn-sm download'
+   //             data-id='ID'>Download</button>
+   //         </a>
+   //       </div>
+   //     </div>
+   //   </div>
+   // </div>
+    card = $('<div>')
+      card.addClass('card text-center')
+      card.attr('data-id', image.id)
+    img = $('<img>')
+      img.addClass('card-img-top')
+      img.attr('src', image.stillURL)
+      img.attr('data-id', image.id)
+      img.attr('data-status', 'still')
+      img.css('width', computeWidth(image.width, image.height))
+      img.css('height', computeHeight(image.width, image.height))
+    card.append(img)
+    div = $('<div>')
+      div.addClass('card-body')
+    p = $('<p>')
+      p.addClass('card-text')
+      s = `Rating: ${image.rating}`
+      if (info === 'full')
+        s += `<br/>${image.title}<br/>Date: ${image.import_datetime}`
+      p.html(s)
+    div.append(p)
+    cont = $('<div>')
+      cont.addClass('container')
+    row = $('<div>')
+      row.addClass('row justify-content-between')
+   // Create _Delete_ button
+    button = $('<button>')
+      button.addClass('btn btn-danger btn-sm delete')
+      button.attr('type', 'button')
+      button.attr('data-id', image.id)
+      button.text('Delete')
+    row.append(button)
+   // Create _Download_ button
+    a = $('<a>')
+      a.attr('href', image.animURL)
+      a.attr('download',
+        image.animURL.substring(image.animURL.lastIndexOf('/') + 1,
+          image.animURL.lastIndexOf('.')) + '.html')
+    button = $('<button>')
+      button.addClass('btn btn-secondary btn-sm download')
+      button.attr('type', 'button')
+      button.attr('data-id', image.id)
+      button.text('Download')
+    a.append(button)
+    row.append(a)
+    cont.append(row)
+    div.append(cont)
+   // Append card to images
+    card.append(div)
+    $('#images').append(card)}
+ // Attach handler for toggling image playback
+  $('.card-img-top').click(function() {
+    var id = $(this).attr('data-id')
+    if ($(this).attr('data-status') === 'still') {
+      $(this).attr('src', images[id].animURL)
+      $(this).attr('data-status', 'anim')}
+      else {
+        $(this).attr('src', images[id].stillURL)
+        $(this).attr('data-status', 'still')}
+    return}
+    )
+ // Attach handlers for _Delete_ button
+  $('.delete').click(function() {
+    var id = $(this).attr('data-id')
+    var index = -1
+    for (i = 0; index < 0 && i !== favorites.length; ++i)
+      if (favorites[i].id === id) index = i
+    if (index >= 0) {
+      favorites.splice(index, 1)
+     // Also remove from localStorage
+      if (localStorageAvailable || storageAvailable('localStorage')) {
+        localStorageAvailable = true
+        localStorage.setItem('favorites', JSON.stringify(favorites))}
+      }
+     // Now delete image from page
+    $('.card').each(function() {
+      if ($(this).attr('data-id') === id) $(this).remove()
+      if (count >= 0) --count
+      return}
+      )
+    return}
+    )
+ // Update count of images pulled so far for current query
+  count = Math.max(count, o + length)
+ // Display pagination
+  $('#pagination').empty()
+  var nav, ul, li                    // jQuery variables to build pagination
+ // Build Bootstrap pagination along the lines of the following:
+ // <nav aria-label='Image navigation bar' class='mt-3'>
+ //   <ul class='pagination justify-content-center'>
+ //     <li class='page-item page' data-offset='OFFSET'>
+ //       <a class='page-link' href='#'>0&ndash;9</a>
+ //     </li>
+ //     <li class='page-item page (active)' data-offset='OFFSET'>
+ //       <a class='page-link' href='#'>10&ndash;19</a>
+ //     </li>
+ //   </ul>
+ // </nav>
+  nav = $('<nav>')
+    nav.addClass('mt-3')
+    nav.attr('aria-label', 'Image navigation bar')
+  ul = $('<ul>')
+    ul.addClass('pagination justify-content-center')
+  var first = 0, next
+  while (first < favorites.length) {
+    next = Math.min(first + limit, favorites.length)
+    li = $('<li>')
+      li.addClass('page-item page')
+      if (o >= first && o < next) li.addClass('active')
+      li.attr('data-offset', `${first}`)
+    a = $('<a>')
+      a.addClass('page-link')
+      a.attr('href', '#')
+      a.html(`${first}&ndash;${next - 1}`)
+    li.append(a)
+    ul.append(li)
+    first = next}
+  nav.append(ul)
+  $('#pagination').append(nav)
+ // Now add handlers for pagination buttons
+  $('.page').click(function() {
+    var offset = parseInt($(this).attr('data-offset'))
+    pullFavorites(offset)
+    return}
+    )
+ // Update prevQuery and prevOffset
+  prevQuery = 'favorites'
+  prevOffset = o
+  return}
 
  // computeWidth(width, height):  Compute width to scale image to area size^2
 function computeWidth(width, height) {
@@ -339,17 +600,6 @@ function computeWidth(width, height) {
 function computeHeight(width, height) {
   var scaleFactor = Math.sqrt(width * height / size / size)
   return Math.round(height / scaleFactor) + 'px'}
-
- // imageToggle():  Toggle image playback
-function imageToggle() {
-  var id = $(this).attr('data-id')
-  if ($(this).attr('data-status') === 'still') {
-    $(this).attr('src', images[id].animURL)
-    $(this).attr('data-status', 'anim')}
-    else {
-      $(this).attr('src', images[id].stillURL)
-      $(this).attr('data-status', 'still')}
-  return}
 
  // EVENT CALLBACK FUNCTIONS
 
